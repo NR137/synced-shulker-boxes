@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": "minecraft:echo_shard",
+  "base": "minecraft:green_shulker_box",
+  "addition": "minecraft:ender_eye",
+  "result": {
+    "id": "minecraft:green_shulker_box",
+    "components": {
+      "minecraft:custom_data": {
+        "synced_shulker_boxes": {}
+      }
+    }
+  }
+}

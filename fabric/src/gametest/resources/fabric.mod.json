@@ -1,0 +1,16 @@
+{
+	"schemaVersion": 1,
+	"id": "synced_shulker_boxes_gametest",
+	"version": "1.0.0",
+	"name": "Synced Shulker Boxes game tests",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-gametest": [
+			"de.nr137.syncedshulkerboxes.fabric.gametest.FabricGameTests"
+		]
+	},
+	"depends": {
+		"synced_shulker_boxes": "*",
+		"fabric-gametest-api-v1": "*"
+	}
+}

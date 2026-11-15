@@ -1,0 +1,31 @@
+# What builds, the dev servers and the tools write; all of it can be made again.
+
+# Gradle, the builds and the loaders' dev servers (fabric/runs, neoforge/runs)
+.gradle/
+build/
+runs/
+# What a crashed or profiled JVM leaves behind
+hs_err_*.log
+replay_*.log
+*.hprof
+*.jfr
+
+# The scripts' downloads and Python's caches
+scripts/.cache/
+__pycache__/
+
+# Notes that stay on this machine
+TODO.md
+docs/*
+!docs/design.md
+
+# Editors and operating systems
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.cursor/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,90 @@
+plugins {
+	id 'multiloader-loader'
+	id 'net.neoforged.moddev'
+}
+
+base {
+	archivesName = "${archives_base_name}-neoforge"
+}
+
+// Game tests with a mock player on a real server: ./gradlew :neoforge:runGameTestServer. The tests themselves are
+// shared with Fabric (common/src/gametest); src/gametest only registers them. Not part of the mod JAR.
+sourceSets {
+	gametest {
+		java.srcDir(rootProject.file('common/src/gametest/java'))
+		compileClasspath += sourceSets.main.output
+		runtimeClasspath += sourceSets.main.output
+	}
+}
+
+neoForge {
+	enable {
+		// To change the versions see the gradle.properties file
+		version = neoforge_version
+		// NeoForge's binary patches on Minecraft's own (unobfuscated) classes instead of decompiling, source-patching and
+		// recompiling the game: that step needs an 8 GB heap and minutes, and only produced sources for the IDE (which
+		// decompiles on the fly).
+		disableRecompilation = true
+	}
+
+	runs {
+		configureEach {
+			ideName = "NeoForge ${it.name.capitalize()} (${project.path})" // Unify the run config names with fabric
+			logLevel = org.slf4j.event.Level.INFO
+		}
+		client {
+			client()
+			gameDirectory = this.mkdir(this.file('runs/client'))
+		}
+		server {
+			server()
+			programArgument '--nogui'
+			gameDirectory = this.mkdir(this.file('runs/server'))
+		}
+		// Singleplayer test (scripts/smoke_test/client_test.py): opens the world "smoke" directly.
+		smokeClient {
+			client()
+			gameDirectory = this.mkdir(this.file('build/run/smokeClient'))
+			programArguments.addAll('--quickPlaySingleplayer', 'smoke')
+		}
+		gameTestServer {
+			type = 'gameTestServer'
+			sourceSet = sourceSets.gametest
+			gameDirectory = this.mkdir(this.file('build/run/gameTest'))
+			systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+		}
+	}
+
+	mods {
+		"${mod_id}" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.gametest
+		}
+	}
+
+	addModdingDependenciesTo(sourceSets.gametest)
+}
+
+dependencies {
+	// The game tests run with Lithium too (see gradle.properties).
+	gametestRuntimeOnly "maven.modrinth:lithium:${lithium_version}-neoforge"
+}
+
+// Implement mcgradleconventions loader attribute
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements'].each { variant ->
+	configurations.named(variant) {
+		attributes {
+			attribute(loaderAttribute, 'neoforge')
+		}
+	}
+}
+sourceSets.configureEach {
+	[it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName, it.getTaskName(null, 'jarJar')].each { variant ->
+		configurations.named(variant) {
+			attributes {
+				attribute(loaderAttribute, 'neoforge')
+			}
+		}
+	}
+}

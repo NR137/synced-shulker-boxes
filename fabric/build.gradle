@@ -1,0 +1,84 @@
+plugins {
+	id 'multiloader-loader'
+	id 'net.fabricmc.fabric-loom'
+}
+
+base {
+	archivesName = "${archives_base_name}-fabric"
+}
+
+dependencies {
+	// To change the versions see the gradle.properties file
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+	// Only to compile ModMenuIntegration; Mod Menu is optional and not in the mod JAR.
+	compileOnly "com.terraformersmc:modmenu:${modmenu_version}"
+}
+
+loom {
+	runs {
+		client {
+			client()
+			setConfigName('Fabric Client')
+			ideConfigGenerated(true)
+			runDir('runs/client')
+		}
+		server {
+			server()
+			setConfigName('Fabric Server')
+			ideConfigGenerated(true)
+			runDir('runs/server')
+		}
+		// Singleplayer test (scripts/smoke_test/client_test.py): opens the world "smoke" directly.
+		smokeClient {
+			client()
+			setConfigName('Fabric Smoke Client')
+			ideConfigGenerated(false)
+			runDir('build/run/smokeClient')
+			programArgs('--quickPlaySingleplayer', 'smoke')
+		}
+	}
+}
+
+// Game tests with a mock player on a real server: ./gradlew :fabric:runGameTest. The tests themselves are shared with
+// NeoForge (common/src/gametest); src/gametest only registers them. Not part of the mod JAR.
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "${mod_id}_gametest"
+		enableGameTests = true
+		enableClientGameTests = false
+		eula = true
+	}
+}
+
+sourceSets {
+	gametest {
+		java.srcDir(rootProject.file('common/src/gametest/java'))
+	}
+}
+
+dependencies {
+	// The game tests run with Lithium too (see gradle.properties).
+	gametestRuntimeOnly "maven.modrinth:lithium:${lithium_version}-fabric"
+}
+
+// Implement mcgradleconventions loader attribute
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'includeInternal', 'modCompileClasspath'].each { variant ->
+	configurations.named(variant) {
+		attributes {
+			attribute(loaderAttribute, 'fabric')
+		}
+	}
+}
+sourceSets.configureEach {
+	[it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant ->
+		configurations.named(variant) {
+			attributes {
+				attribute(loaderAttribute, 'fabric')
+			}
+		}
+	}
+}

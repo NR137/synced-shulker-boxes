@@ -1,0 +1,34 @@
+# Placeholders are filled in by processResources (build-logic/src/main/groovy/multiloader-common.gradle).
+license="${license}"
+issueTrackerURL="${mod_homepage}/issues"
+
+[[mods]]
+modId="${mod_id}"
+version="${version}"
+displayName="${mod_name}"
+authors="NR137"
+displayURL="${mod_homepage}"
+description='''
+Link shulker boxes so they share one inventory. Server-side: players join with an unmodded client; with the mod on
+the client too, synced boxes get the enchantment glint.
+Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.
+'''
+
+[[mixins]]
+config="${mod_id}.mixins.json"
+
+# Server-side only: the mod registers no network channels, so NeoForge lets vanilla clients join (the smoke test
+# checks that with a vanilla client). It loads on clients too, for singleplayer.
+[[dependencies.${mod_id}]]
+    modId="neoforge"
+    type="required"
+    versionRange="[${neoforge_version},)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"

@@ -1,0 +1,25 @@
+plugins {
+	// see https://maven.fabricmc.net/net/fabricmc/fabric-loom/net.fabricmc.fabric-loom.gradle.plugin/maven-metadata.xml for new versions
+	id 'net.fabricmc.fabric-loom' version '1.19.4' apply false
+	// see https://projects.neoforged.net/neoforged/moddevgradle for new versions
+	id 'net.neoforged.moddev' version '2.0.148' apply false
+}
+
+// Java, Node and Python versions are set once, in .tool-versions; the dev image installs exactly these (docker/).
+// Java is the version the mod is compiled for and requires (toolchain, release flag, mod metadata).
+def javaLine = file('.tool-versions').readLines().find { it.trim().startsWith('java ') }
+if (javaLine == null) {
+	throw new GradleException('.tool-versions has no "java <version>" line')
+}
+allprojects {
+	ext.java_version = javaLine.trim().split(/\s+/)[1]
+}
+
+// ModDevGradle runs NeoForm's helper (Minecraft artifacts, asset downloads) on a Java 21 of its own by default, which
+// Gradle would download; ours works too, so .tool-versions stays the only Java.
+subprojects {
+	tasks.withType(net.neoforged.nfrtgradle.NeoFormRuntimeTask).configureEach {
+		javaExecutable = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(java_version) }
+			.map { it.executablePath.asFile.absolutePath }
+	}
+}
