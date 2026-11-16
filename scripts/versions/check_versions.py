@@ -134,12 +134,20 @@ def mixin_both_ship():
 	return older, f'NeoForge {neoforge} ships {neo}, Fabric Loader {fabric_loader} {fabric}'
 
 
+def lithium_newest():
+	"""The newest release of Lithium for this Minecraft (Modrinth lists newest first); a beta only if there is none."""
+	versions = json.loads(fetch('https://api.modrinth.com/v2/project/lithium/version?game_versions='
+		+ urllib.parse.quote(json.dumps([minecraft])) + '&loaders=' + urllib.parse.quote(json.dumps(['fabric']))))
+	releases = [v for v in versions if v['version_type'] == 'release']
+	chosen = (releases or versions)[0]
+	note = f'for Minecraft {minecraft}' + ('' if releases else f' (no release yet, newest {chosen["version_type"]})')
+	return chosen['version_number'].split('-')[1], note
+
+
 if re.search(r'^lithium_version=', properties, re.MULTILINE):
 	# Test only: the game and smoke tests run with Lithium (gradle.properties, Modrinth).
 	lithium = prop(properties, 'lithium_version')
-	check('Minecraft', 'Lithium (tests only)', lithium.split('-', 1)[1], lambda: (json.loads(fetch(
-		'https://api.modrinth.com/v2/project/lithium/version?game_versions=' + urllib.parse.quote(json.dumps([minecraft]))
-		+ '&loaders=' + urllib.parse.quote(json.dumps(['fabric']))))[0]['version_number'].split('-')[1], f'for Minecraft {minecraft}'))
+	check('Minecraft', 'Lithium (tests only)', lithium.split('-', 1)[1], lithium_newest)
 
 if re.search(r'^modmenu_version=', properties, re.MULTILINE):
 	# Only compiled against (the optional settings button on Fabric).
